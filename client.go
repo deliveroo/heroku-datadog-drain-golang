@@ -91,7 +91,7 @@ func (c *Client) sendRouterMsg(data *logMetrics) {
 		log.WithField("error", err).Info("Failed to send Incr")
 	}
 
-	conn, err := strconv.ParseFloat(data.metrics["connect"].Val, 10)
+	conn, err := strconv.ParseFloat(data.metrics["connect"].Val, 64)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"type":   "router",
@@ -100,7 +100,7 @@ func (c *Client) sendRouterMsg(data *logMetrics) {
 		}).Info("Could not parse metric value")
 		return
 	}
-	serv, err := strconv.ParseFloat(data.metrics["service"].Val, 10)
+	serv, err := strconv.ParseFloat(data.metrics["service"].Val, 64)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"type":   "router",
