@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"os"
+	"strconv"
 	"strings"
 
 	log "github.com/Sirupsen/logrus"
@@ -154,6 +155,13 @@ func main() {
 	if v := os.Getenv("EXCLUDED_TAGS"); v != "" {
 		for _, t := range strings.Split(v, ",") {
 			c.ExcludedTags[t] = true
+		}
+	}
+
+	if v := os.Getenv("SAMPLE_RATE"); v != "" {
+		c.SampleRate, err = strconv.ParseFloat(v, 64)
+		if err != nil {
+			log.WithField("SAMPLE_RATE", v).Fatal("Could not parse setting")
 		}
 	}
 

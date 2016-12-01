@@ -63,6 +63,7 @@ ALLOWED_APPS=my-app,..    # Required. Comma seperated list of app names
 <APP-NAME>_PREFIX=..      # Optional. String to be prepended to all metrics from a given app
 DATADOG_DRAIN_DEBUG=..    # Optional. If DEBUG is set, a lot of stuff will be logged :)
 EXCLUDED_TAGS: path,host  # Optional. Recommended to solve problem with tags limit (1000)
+SAMPLE_RATE=...           # Optional. The sample rate when sending to the statsd daemon (1.0)
 ```
 Note that the capitalized `<APP-NAME>` and `<YOUR-APP-SLUG>` appearing above indicate that your application name and slug should also be in full caps. For example, to set the password for an application named `my-app`, you would need to specify `heroku config:set ALLOWED_APPS=my-app MY-APP_PASSWORD=example_password`
 

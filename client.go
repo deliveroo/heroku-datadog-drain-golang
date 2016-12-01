@@ -8,7 +8,6 @@ import (
 	log "github.com/Sirupsen/logrus"
 )
 
-const sampleRate = 1.0
 
 const (
 	routerMsg int = iota
@@ -25,12 +24,13 @@ var customMetricsKeys = []string{"media_type", "output_type", "route"}
 type Client struct {
 	*statsd.Client
 	ExcludedTags map[string]bool
+	SampleRate   float64
 }
 
 func statsdClient(addr string) (*Client, error) {
 
 	c, err := statsd.New(addr)
-	return &Client{c, make(map[string]bool)}, err
+	return &Client{c, make(map[string]bool), 1.0}, err
 }
 
 func (c *Client) sendToStatsd(in chan *logMetrics) {
@@ -105,11 +105,11 @@ func (c *Client) sendRouterMsg(data *logMetrics) {
 		return
 	}
 
-	err = c.Histogram(*data.prefix+"heroku.router.request.connect", conn, tags, sampleRate)
+	err = c.Histogram(*data.prefix+"heroku.router.request.connect", conn, tags, c.SampleRate)
 	if err != nil {
 		log.WithField("error", err).Info("Failed to send Histogram")
 	}
-	err = c.Histogram(*data.prefix+"heroku.router.request.service", serv, tags, sampleRate)
+	err = c.Histogram(*data.prefix+"heroku.router.request.service", serv, tags, c.SampleRate)
 	if err != nil {
 		log.WithField("error", err).Info("Failed to send Histogram")
 	}
@@ -135,7 +135,7 @@ func (c *Client) sendSampleMsg(data *logMetrics) {
 			m := strings.Replace(strings.Split(k, "#")[1], "_", ".", -1)
 			vnum, err := strconv.ParseFloat(v.Val, 10)
 			if err == nil {
-				err = c.Gauge(*data.prefix+"heroku.dyno."+m, vnum, tags, sampleRate)
+				err = c.Gauge(*data.prefix+"heroku.dyno."+m, vnum, tags, c.SampleRate)
 				if err != nil {
 					log.WithField("error", err).Info("Failed to send Gauge")
 				}
@@ -163,7 +163,7 @@ func (c *Client) sendScalingMsg(data *logMetrics) {
 		if v, ok := data.metrics[mk]; ok {
 			vnum, err := strconv.ParseFloat(v.Val, 10)
 			if err == nil {
-				err = c.Gauge(*data.prefix+"heroku.dyno."+mk, vnum, tags, sampleRate)
+				err = c.Gauge(*data.prefix+"heroku.dyno."+mk, vnum, tags, c.SampleRate)
 				if err != nil {
 					log.WithField("error", err).Info("Failed to send Gauge")
 				}
@@ -206,7 +206,7 @@ Tags:
 		if strings.Index(k, "#") != -1 {
 			if vnum, err := strconv.ParseFloat(v.Val, 10); err == nil {
 				m := strings.Replace(strings.Split(k, "#")[1], "_", ".", -1)
-				err = c.Gauge(*data.prefix+"app.metric."+m, vnum, tags, sampleRate)
+				err = c.Gauge(*data.prefix+"app.metric."+m, vnum, tags, c.SampleRate)
 				if err != nil {
 					log.WithField("error", err).Warning("Failed to send Gauge")
 				}
