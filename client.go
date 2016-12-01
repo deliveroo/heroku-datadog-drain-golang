@@ -105,6 +105,10 @@ func (c *Client) sendRouterMsg(data *logMetrics) {
 		return
 	}
 
+	err = c.Incr(*data.prefix+"heroku.router.request", tags, c.SampleRate)
+	if err != nil {
+		log.WithField("error", err).Info("Failed to send Incr")
+	}
 	err = c.Histogram(*data.prefix+"heroku.router.request.connect", conn, tags, c.SampleRate)
 	if err != nil {
 		log.WithField("error", err).Info("Failed to send Histogram")

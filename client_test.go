@@ -15,7 +15,7 @@ var statsdTests = []struct {
 	Expected []string
 }{
 	{
-		cnt: 2,
+		cnt: 3,
 		m: logMetrics{
 			routerMsg,
 			&app,
@@ -30,6 +30,7 @@ var statsdTests = []struct {
 			},
 		},
 		Expected: []string{
+			"prefix.heroku.router.request:1|c|#tag1,tag2,at:info",
 			"prefix.heroku.router.request.connect:1.000000|h|#tag1,tag2,at:info",
 			"prefix.heroku.router.request.service:37.000000|h|#tag1,tag2,at:info",
 		},
