@@ -9,3 +9,5 @@ import:
 - package: github.com/gin-gonic/gin
   version: ^1.0.0
 - package: github.com/kr/logfmt
+- package: github.com/newrelic/go-agent
+  version: ^1.10.0
