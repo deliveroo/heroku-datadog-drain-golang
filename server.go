@@ -2,11 +2,13 @@ package main
 
 import (
 	"bufio"
+	"net/http"
 	"os"
 	"strings"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/gin-gonic/gin"
+	"github.com/newrelic/go-agent"
 )
 
 const bufferLen = 500
@@ -28,6 +30,7 @@ type ServerCtx struct {
 	Debug       bool
 	in          chan *logData
 	out         chan *logMetrics
+	newRelicApp newrelic.Application
 }
 
 //Load configuration from envrionment variables, see list below
@@ -44,18 +47,21 @@ type ServerCtx struct {
 //String to be prepended to all metrics from a given app
 
 //STATSD_URL=..  Required. Default: localhost:8125
-//DATADOG_DRAIN_DEBUG=         Optional. If DEBUG is set, a lot of stuff w
+//DATADOG_DRAIN_DEBUG=         Optional. If DEBUG is set, a lot of stuff will be logged
 func loadServerCtx() *ServerCtx {
+	newrelicConfig := BuildNewRelicConfig(
+		os.Getenv("NEWRELIC_ENABLED"),
+		os.Getenv("NEWRELIC_LICENSE_KEY"),
+	)
 
-	s := &ServerCtx{"8080",
-		nil,
-		make(map[string]string),
-		make(map[string][]string),
-		make(map[string]string),
-		"localhost:8125",
-		false,
-		nil,
-		nil,
+	s := &ServerCtx{
+		Port:        "8080",
+		AppPasswd:   make(map[string]string),
+		AppTags:     make(map[string][]string),
+		AppPrefix:   make(map[string]string),
+		StatsdUrl:   "localhost:8125",
+		Debug:       false,
+		newRelicApp: NewNewRelicApp(newrelicConfig),
 	}
 	port := os.Getenv("PORT")
 	if port != "" {
@@ -119,6 +125,8 @@ func init() {
 }
 
 func (s *ServerCtx) processLogs(c *gin.Context) {
+	txn := s.newRelicApp.StartTransaction("/", c.Writer.(http.ResponseWriter), c.Request)
+	defer txn.End()
 
 	app := c.MustGet(gin.AuthUserKey).(string)
 	tags := s.AppTags[app]
